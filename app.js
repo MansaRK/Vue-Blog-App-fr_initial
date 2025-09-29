@@ -1,46 +1,41 @@
-require('dotenv').config();
+// app.js
 
 const express = require('express');
-const methodOverride = require('method-override');
-const cookieParser = require('cookie-parser');
+const dotenv = require('dotenv');
+const connectDB = require('./client/server/config/db');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
-const cors = require('cors');
-const connectDB = require('./client/server/config/db');
+
+dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
 
-// Connect to DB
+// Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Database connection
 connectDB();
 
-// Middlewares
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-app.use(cookieParser());
-app.use(methodOverride('_method'));
-
-app.use(session({
-    secret: 'keyboard cat',
+// Sessions
+app.use(
+  session({
+    secret: process.env.JWT_SECRET || 'fallbacksecret',
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
     store: MongoStore.create({
-        mongoUrl: process.env.MONGODB_URI
-    })
-}));
+      mongoUrl: process.env.MONGO_URI,
+      collectionName: 'sessions',
+    }),
+    cookie: { maxAge: 1000 * 60 * 60 * 24 }, // 1 day
+  })
+);
 
-// Enable CORS for Vue (5173)
-app.use(cors({
-    origin: 'http://localhost:5173',
-    credentials: true
-}));
-
-app.use(express.static('public'));
-
-// API routes
-app.use('/', require('./client/server/routes/main'));
+// Routes
 app.use('/api/admin', require('./client/server/routes/admin'));
 
-app.listen(PORT, () => {
-    console.log(`API server running on port ${PORT}`);
+// 👇 FIXED PORT CONFIG FOR RENDER 👇
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`API server running on port ${PORT}`);
 });
