@@ -1,0 +1,230 @@
+<template>
+  <div class="auth">
+    <!-- Sign In -->
+    <h3 class="auth-title">Sign In</h3>
+    <form @submit.prevent="login" class="auth-form">
+      <label for="login-username"><b>Username</b></label>
+      <input
+        type="text"
+        id="login-username"
+        v-model="loginUsername"
+        placeholder="Enter Username"
+        required
+      />
+
+      <label for="login-password"><b>Password</b></label>
+      <div class="password-wrapper">
+        <input
+          :type="showLoginPassword ? 'text' : 'password'"
+          id="login-password"
+          v-model="loginPassword"
+          placeholder="Enter Password"
+          required
+        />
+        <i
+          :class="showLoginPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"
+          class="toggle-password"
+          @click="showLoginPassword = !showLoginPassword"
+        ></i>
+      </div>
+
+      <input type="submit" value="Login" class="btn" />
+    </form>
+
+    <!-- Register -->
+    <h3 class="auth-title">Register</h3>
+    <form @submit.prevent="register" class="auth-form">
+      <label for="register-username"><b>Username</b></label>
+      <input
+        type="text"
+        id="register-username"
+        v-model="registerUsername"
+        placeholder="Enter Username"
+        required
+      />
+
+      <label for="register-password"><b>Password</b></label>
+      <div class="password-wrapper">
+        <input
+          :type="showRegisterPassword ? 'text' : 'password'"
+          id="register-password"
+          v-model="registerPassword"
+          placeholder="Enter Password"
+          required
+        />
+        <i
+          :class="showRegisterPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"
+          class="toggle-password"
+          @click="showRegisterPassword = !showRegisterPassword"
+        ></i>
+      </div>
+
+      <input type="submit" value="Register" class="btn" />
+    </form>
+  </div>
+</template>
+
+<script setup>
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+const loginUsername = ref('')
+const loginPassword = ref('')
+const registerUsername = ref('')
+const registerPassword = ref('')
+
+const showLoginPassword = ref(false)
+const showRegisterPassword = ref(false)
+
+const router = useRouter()
+
+// Login function
+async function login() {
+  try {
+    const res = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: loginUsername.value,
+        password: loginPassword.value,
+      }),
+      credentials: 'include',
+    })
+
+    if (res.ok) {
+      router.push('/admin/dashboard')
+    } else {
+      alert('Login failed')
+    }
+  } catch (err) {
+    console.error('Error logging in:', err)
+  }
+}
+
+// Register function
+async function register() {
+  try {
+    const res = await fetch('/api/admin/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: registerUsername.value,
+        password: registerPassword.value,
+      }),
+    })
+
+    if (res.ok) {
+      alert('Registration successful, you can now log in')
+      registerUsername.value = ''
+      registerPassword.value = ''
+    } else {
+      alert('Registration failed')
+    }
+  } catch (err) {
+    console.error('Error registering:', err)
+  }
+}
+</script>
+
+<style scoped>
+.auth {
+  max-width: 450px;
+  margin: 2rem auto;
+  padding: 2rem;
+  border-radius: 12px;
+  background: rgba(25, 25, 45, 0.9);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.6);
+  transition: all 0.4s ease-in-out;
+}
+
+/* Hover Glow */
+.auth:hover {
+  box-shadow: 
+    0 0 10px var(--neon-blue),
+    0 0 20px var(--neon-pink),
+    0 0 40px var(--neon-blue);
+  transform: translateY(-6px);
+}
+
+.auth-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.8rem;
+  text-align: center;
+  color: #fff;
+  margin-bottom: 1rem;
+  text-shadow: 0 0 8px var(--neon-blue), 0 0 15px var(--neon-pink);
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 2rem;
+}
+
+label {
+  margin-top: 1rem;
+  color: var(--neon-blue);
+  font-weight: 600;
+}
+
+input {
+  padding: 0.75rem;
+  margin-top: 0.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+/* Glow effect on focus */
+input:focus {
+  box-shadow: 0 0 8px var(--neon-blue), 0 0 12px var(--neon-pink);
+  transform: scale(1.02);
+}
+
+/* Password toggle wrapper */
+.password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-wrapper input {
+  width: 100%;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 12px;
+  cursor: pointer;
+  color: var(--gray-light);
+  transition: color 0.3s ease;
+}
+
+.toggle-password:hover {
+  color: var(--neon-pink);
+}
+
+.btn {
+  margin-top: 1.5rem;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: var(--neon-blue);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  transition: all 0.3s ease-in-out;
+}
+
+.btn:hover {
+  background: var(--neon-pink);
+  box-shadow: 0 0 8px var(--neon-pink), 0 0 15px var(--neon-blue);
+  transform: scale(1.05);
+}
+</style>
